@@ -51,11 +51,18 @@ namespace Spekt.TestLogger.Extensions
                 string displayName = result.TestResultDisplayName;
 
                 // Add parameters for theories.
-                if (string.IsNullOrWhiteSpace(displayName) == false &&
-                    displayName.IndexOf("(") is int i &&
-                    i > 0)
+                if (!string.IsNullOrWhiteSpace(displayName))
                 {
-                    result.Method += displayName.Substring(i);
+                    // Add parameters for theories.
+                    if (displayName.IndexOf("(") is int i &&
+                        i > 0)
+                    {
+                        result.Method += displayName.Substring(i);
+                    }
+                    else if (result.TestCaseDisplayName != displayName)
+                    {
+                        result.DisplayName = displayName;
+                    }
                 }
 
                 transformedResults.Add(result);
