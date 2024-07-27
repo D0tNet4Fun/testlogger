@@ -17,7 +17,7 @@ namespace Spekt.TestLogger.Extensions
 
             // Process all the messages collected during the test run
             // If one ends with [SKIP], then the next message contains the skip reason.
-            var skippedTestNamesWithReason = new Dictionary<string, string>();
+            var skippedTestNamesWithReason = new Queue<(string testName, string skipReason)>();
             for (int i = 0; i < messages.Count; i++)
             {
                 string message = messages[i].Message;
@@ -35,13 +35,15 @@ namespace Spekt.TestLogger.Extensions
                 from = reasonMessage.IndexOf("]") + 1;
                 string reason = reasonMessage.Substring(from).Trim();
 
-                skippedTestNamesWithReason.Add(testName, reason);
+                skippedTestNamesWithReason.Enqueue((testName, reason));
             }
 
             foreach (var result in results)
             {
-                if (skippedTestNamesWithReason.TryGetValue(result.TestCaseDisplayName, out var skipReason))
+                if (result.Outcome == TestOutcome.Skipped)
                 {
+                    var skipReason = GetSkipReason(result.TestResultDisplayName);
+
                     // TODO: Defining a new category for now...
                     result.Messages.Add(new TestResultMessage("skipReason", skipReason));
                 }
@@ -49,17 +51,40 @@ namespace Spekt.TestLogger.Extensions
                 string displayName = result.TestResultDisplayName;
 
                 // Add parameters for theories.
-                if (string.IsNullOrWhiteSpace(displayName) == false &&
-                    displayName.IndexOf("(") is int i &&
-                    i > 0)
+                if (!string.IsNullOrWhiteSpace(displayName))
                 {
-                    result.Method += displayName.Substring(i);
+                    // Add parameters for theories.
+                    if (displayName.IndexOf("(") is int i &&
+                        i > 0)
+                    {
+                        result.Method += displayName.Substring(i);
+                    }
+                    else if (result.TestCaseDisplayName != displayName)
+                    {
+                        result.DisplayName = displayName;
+                    }
                 }
 
                 transformedResults.Add(result);
             }
 
             return transformedResults;
+
+            string GetSkipReason(string expectedTestName)
+            {
+                // assume the call order matches the order of the items in the queue
+                if (skippedTestNamesWithReason.Count > 0)
+                {
+                    var (testName, knownSkipReason) = skippedTestNamesWithReason.Dequeue();
+                    if (testName == expectedTestName)
+                    {
+                        return knownSkipReason;
+                    }
+                }
+
+                const string unknownSkipReason = "N/A";
+                return unknownSkipReason;
+            }
         }
     }
 }
