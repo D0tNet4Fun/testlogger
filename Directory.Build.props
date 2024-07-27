@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
   <PropertyGroup>
-    <SourceRoot Condition="$(SourceRoot) == ''">$(MSBuildThisFileDirectory)../../</SourceRoot>
-    <SourcePrefix>3.1.0</SourcePrefix>
+    <SourceRoot Condition="$(SourceRoot) == ''">$(MSBuildThisFileDirectory)</SourceRoot>
+    <SourcePrefix>4.0.0</SourcePrefix>
   </PropertyGroup>
+
   <PropertyGroup>
     <!-- Versioning is defined from the build script. Use a default dev build if it's not defined.
          Sets the AssemblyVersion, AssemblyFileVersion and AssemblyInformationalVersion -->
@@ -39,8 +39,6 @@
     <DefineConstants>$(DefineConstants);CODE_ANALYSIS</DefineConstants>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)dependencies.props" />
-
   <!-- Common dependencies for all projects -->
   <ItemGroup>
     <AdditionalFiles Include="$(SourceRoot)scripts\stylecop.json">
@@ -52,29 +50,23 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- Test project settings -->
-  <Choose>
-    <When Condition="$(TestProject) == 'true'">
-      <ItemGroup>
-        <PackageReference Include="MSTest.TestFramework">
-          <Version>$(MSTestVersion)</Version>
-        </PackageReference>
-        <PackageReference Include="MSTest.TestAdapter">
-          <Version>$(MSTestVersion)</Version>
-        </PackageReference>
-        <PackageReference Include="Moq">
-          <Version>$(MoqVersion)</Version>
-        </PackageReference>
-        <PackageReference Include="Microsoft.NET.Test.Sdk">
-          <Version>$(NETTestSdkVersion)</Version>
-        </PackageReference>
-      </ItemGroup>
-    </When>
-  </Choose>
-
   <!-- Code analysis settings -->
   <PropertyGroup>
     <CodeAnalysisRuleSet>$(SourceRoot)scripts/stylecop.ruleset</CodeAnalysisRuleSet>
     <CodeAnalysisRuleSet Condition="$(TestProject) == 'true'">$(SourceRoot)scripts/stylecop.test.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Test Assets use the minimum supported versions -->
+    <NETTestSdkMinimumVersion>16.5.0</NETTestSdkMinimumVersion>
+    <XunitVersion>2.3.1</XunitVersion>
+    <XunitTestAdapterVersion>2.3.1</XunitTestAdapterVersion>
+    <NUnitVersion>3.13.2</NUnitVersion>
+    <NUnitTestAdapterVersion>4.0.0</NUnitTestAdapterVersion>
+    <MSTestVersion>3.4.3</MSTestVersion>
+
+    <!-- Only use stable versions of stylecop -->
+    <StylecopVersion>1.1.118</StylecopVersion>
+  </PropertyGroup>
 </Project>
+<!-- vim: set ft=xml : -->
